@@ -57,10 +57,12 @@ def lz_patterns(data):
       pnum += 1
       patterns[buf] = pnum
       buf = ''
-  
-  return patterns
 
-def lz_encode(patterns): # FIXME: Assumes in order
+  last = None if buf == '' else patterns[buf]
+  
+  return (patterns, last)
+
+def lz_encode(patterns, last = None): # FIXME: Assumes in order
   hex2bin = { '0': '0000', '1': '0001', '2': '0010', '3': '0011', '4': '0100', '5': '0101', '6': '0110', '7': '0111',
               '8': '1000', '9': '1001', 'a': '1010', 'b': '1011', 'c': '1100', 'd': '1101', 'e': '1110', 'f': '1111' }
   
@@ -83,14 +85,20 @@ def lz_encode(patterns): # FIXME: Assumes in order
       pnum_len_b += 1
       pnum_len_ctr = 0
   
-  sb += '0' * (8-(len(sb) % 8))
+  if (last != None):
+    pns = bin(last)[2:]
+    sb += '0' * (pnum_len_b - len(pns))
+    sb += pns
+
+  padn = (8-(len(sb) % 8))
+  sb += '1' + ('0' * (padn-1))
   return int(sb, 2).to_bytes(len(sb) // 8, 'big')
 
 # Main ------------------------------------------------------------------------------------------- #
 
 wav = WAV(sys.argv[1])
-patterns = lz_patterns(wav.data_b)
-enc = lz_encode(patterns)
+patterns, last = lz_patterns(wav.data_b)
+enc = lz_encode(patterns, last)
 
 print(len(wav.data_b))
 print(len(enc))
