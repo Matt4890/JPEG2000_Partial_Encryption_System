@@ -63,6 +63,28 @@ class WAV:
 
     fh.close()
 
+  def save_header(self, filename, data_sz_b):
+    fh = open(filename, 'wb')
+
+    fh.write(b'RIFF')
+    fh.write((40 + data_sz_b).to_bytes(4, 'little'))
+    fh.write(b'WAVE')
+
+    fh.write(b'fmt ')
+    fh.write(self.fmt_sz_b.to_bytes(4, 'little'))
+    fh.write((1).to_bytes(2, 'little'))
+    fh.write(self.num_ch.to_bytes(2, 'little'))
+    fh.write(self.sample_rate.to_bytes(4, 'little'))
+    fh.write(self.byte_rate.to_bytes(4, 'little'))
+    fh.write(self.block_align.to_bytes(2, 'little'))
+    fh.write(self.bps.to_bytes(2, 'little'))
+    if (16 < self.fmt_sz_b): fh.write((0).to_bytes(self.fmt_sz_b - 16, 'little'))
+
+    fh.write(b'data')
+    fh.write(data_sz_b.to_bytes(4, 'little'))
+
+    fh.close()
+
 # Functions -------------------------------------------------------------------------------------- #
 
 # Source: http://rosettacode.org/wiki/LZW_compression#Python
@@ -126,15 +148,27 @@ def decompress(compressed):
 # Main ------------------------------------------------------------------------------------------- #
 
 wav = WAV(sys.argv[1])
-
 print('\nENCODE:')
 ih = wav.data_b
 print(ih.hex()[0:64])
 print(ih.hex()[-64:])
 enc = compress(ih.hex())
 
+print('\nSAVE:')
+comp_data = b''
+wav.save_header('comp-output.wav', len(enc)*4)
+with open('comp-output.wav', 'ab') as fh:
+  for i in enc:
+    fh.write(i.to_bytes(4, 'little'))
+
+print('\nREAD:')
+cwav = WAV('comp-output.wav')
+cvals = [int.from_bytes(cwav.data_b[i:i+4], 'little') for i in range(0, cwav.data_sz_b, 4)]
+print(cvals[0:64])
+print(cvals[-64:])
+
 print('\nDECODE:')
-dec = bytes.fromhex(decompress(enc))
+dec = bytes.fromhex(decompress(cvals))
 print(dec.hex()[0:64])
 print(dec.hex()[-64:])
 
