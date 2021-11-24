@@ -40,6 +40,29 @@ class WAV:
     print(f'Sample Rate:   {self.sample_rate}')
     print(f'Bits/Sample:   {self.bps}')
 
+  def save(self, filename, data):
+    fh = open(filename, 'wb')
+
+    fh.write(b'RIFF')
+    fh.write((40 + len(data)).to_bytes(4, 'little'))
+    fh.write(b'WAVE')
+
+    fh.write(b'fmt ')
+    fh.write(self.fmt_sz_b.to_bytes(4, 'little'))
+    fh.write((1).to_bytes(2, 'little'))
+    fh.write(self.num_ch.to_bytes(2, 'little'))
+    fh.write(self.sample_rate.to_bytes(4, 'little'))
+    fh.write(self.byte_rate.to_bytes(4, 'little'))
+    fh.write(self.block_align.to_bytes(2, 'little'))
+    fh.write(self.bps.to_bytes(2, 'little'))
+    if (16 < self.fmt_sz_b): fh.write((0).to_bytes(self.fmt_sz_b - 16, 'little'))
+
+    fh.write(b'data')
+    fh.write(len(data).to_bytes(4, 'little'))
+    fh.write(data)
+
+    fh.close()
+
 # Functions -------------------------------------------------------------------------------------- #
 
 # Source: http://rosettacode.org/wiki/LZW_compression#Python
@@ -116,3 +139,4 @@ print(dec.hex()[0:64])
 print(dec.hex()[-64:])
 
 print(wav.data_b == dec)
+wav.save('output.wav', dec)
