@@ -26,7 +26,7 @@ def decompress(compressed):
     elif k == dict_size:
       entry = w + w[0].to_bytes(1, 'little')
     else:
-      raise ValueError('Bad compressed k: %s' % k)
+      continue
     result.write(entry)
  
     # Add w+entry[0] to the dictionary.
