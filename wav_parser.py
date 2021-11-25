@@ -93,13 +93,13 @@ def compress(uncompressed):
  
   # Build the dictionary.
   dict_size = 256
-  dictionary = dict((chr(i), i) for i in range(dict_size))
-  # in Python 3: dictionary = {chr(i): i for i in range(dict_size)}
+  dictionary = {i.to_bytes(1, 'little'): i for i in range(dict_size)}
  
-  w = ""
+  w: bytes = b""
   result = []
   for c in uncompressed:
-    wc = w + c
+    c: bytes = c.to_bytes(1, 'little')
+    wc: bytes = w + c
     if wc in dictionary:
       w = wc
     else:
@@ -117,29 +117,28 @@ def compress(uncompressed):
 # Source: http://rosettacode.org/wiki/LZW_compression#Python
 def decompress(compressed):
   """Decompress a list of output ks to a string."""
-  from io import StringIO
+  from io import BytesIO
  
   # Build the dictionary.
   dict_size = 256
-  dictionary = dict((i, chr(i)) for i in range(dict_size))
-  # in Python 3: dictionary = {i: chr(i) for i in range(dict_size)}
+  dictionary = {i: i.to_bytes(1, 'little') for i in range(dict_size)}
  
-  # use StringIO, otherwise this becomes O(N^2)
+  # use BytesIO, otherwise this becomes O(N^2)
   # due to string concatenation in a loop
-  result = StringIO()
-  w = chr(compressed.pop(0))
+  result = BytesIO()
+  w: bytes = b'' + compressed.pop(0).to_bytes(1, 'little')
   result.write(w)
   for k in compressed:
     if k in dictionary:
       entry = dictionary[k]
     elif k == dict_size:
-      entry = w + w[0]
+      entry = w + w[0].to_bytes(1, 'little')
     else:
       raise ValueError('Bad compressed k: %s' % k)
     result.write(entry)
  
     # Add w+entry[0] to the dictionary.
-    dictionary[dict_size] = w + entry[0]
+    dictionary[dict_size] = w + entry[0].to_bytes(1, 'little')
     dict_size += 1
  
     w = entry
@@ -152,7 +151,7 @@ print('\nENCODE:')
 ih = wav.data_b
 print(ih.hex()[0:64])
 print(ih.hex()[-64:])
-enc = compress(ih.hex())
+enc = compress(ih)
 
 print('\nSAVE:')
 comp_data = b''
@@ -168,7 +167,7 @@ print(cvals[0:64])
 print(cvals[-64:])
 
 print('\nDECODE:')
-dec = bytes.fromhex(decompress(cvals))
+dec = decompress(cvals)
 print(dec.hex()[0:64])
 print(dec.hex()[-64:])
 
