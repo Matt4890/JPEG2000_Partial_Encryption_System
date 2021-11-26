@@ -38,12 +38,22 @@ def decompress(compressed):
 
 # Main ------------------------------------------------------------------------------------------- #
 
-print('\nREAD:')
-cwav = WAV(sys.argv[1])
-cvals = [int.from_bytes(cwav.data_b[i:i+4], 'little') for i in range(0, cwav.data_sz_b, 4)]
+if __name__ == '__main__':
+  # Check args
+  if (len(sys.argv) != 2):
+    print('USAGE: python3 wav_decompressor.py file_to_decompress')
+    exit(1)
 
-print('\nDECODE:')
-dec = decompress(cvals)
+  # Import
+  print('READING...')
+  cwav = WAV(sys.argv[1])
+  cvals = [int.from_bytes(cwav.data_b[i:i+4], 'little') for i in range(0, cwav.data_sz_b, 4)]
 
-print('\nSAVE:')
-cwav.save('output.wav', dec)
+  # Decompress
+  print('DECODING...')
+  dec = decompress(cvals)
+
+  # Export
+  print('SAVING...')
+  cwav.save('output.wav', dec)
+  exit(0)

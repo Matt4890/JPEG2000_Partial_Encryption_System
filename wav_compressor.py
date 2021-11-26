@@ -35,14 +35,26 @@ def compress(uncompressed):
 
 # Main ------------------------------------------------------------------------------------------- #
 
-wav = WAV(sys.argv[1])
-print('\nENCODE:')
-ih = wav.data_b
-enc = compress(ih)
+if __name__ == '__main__':
+  # Check args
+  if (len(sys.argv) != 2):
+    print('USAGE: python3 wav_compressor.py file_to_compress')
+    exit(1)
 
-print('\nSAVE:')
-comp_data = b''
-wav.save_header('comp-output.wav', len(enc)*4)
-with open('comp-output.wav', 'ab') as fh:
-  for i in enc:
-    fh.write(i.to_bytes(4, 'little'))
+  # Import
+  print('READING...')
+  wav = WAV(sys.argv[1])
+
+  # Compress
+  print('ENCODING...')
+  ih = wav.data_b
+  enc = compress(ih)
+
+  # Export
+  print('SAVING...')
+  comp_data = b''
+  wav.save_header('comp-output.wav', len(enc)*4)
+  with open('comp-output.wav', 'ab') as fh:
+    for i in enc:
+      fh.write(i.to_bytes(4, 'little'))
+  exit(0)
