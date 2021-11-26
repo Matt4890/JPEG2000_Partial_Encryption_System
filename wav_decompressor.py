@@ -18,7 +18,7 @@ def decompress(compressed):
   # use BytesIO, otherwise this becomes O(N^2)
   # due to string concatenation in a loop
   result = BytesIO()
-  w: bytes = b'' + compressed.pop(0).to_bytes(1, 'little')
+  w: bytes = b'' + (compressed.pop(0) % 256).to_bytes(1, 'little')
   result.write(w)
   for k in compressed:
     if k in dictionary:

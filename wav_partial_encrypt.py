@@ -47,16 +47,16 @@ def penc_gap_n(wav, cipher, n):
 def penc_first_n(wav, cipher, n):
   eb = BytesIO()
   encryptor = cipher.encryptor()
-  ct = encryptor.update(wav.data_b[0:n]) + encryptor.finalize()
+  ct = encryptor.update(wav.data_b[0:n*16]) + encryptor.finalize()
   eb.write(ct)
-  eb.write(wav.data_b[n:])
+  eb.write(wav.data_b[n*16:])
   return eb.getvalue()
 
 def penc_last_n(wav, cipher, n):
   eb = BytesIO()
   encryptor = cipher.encryptor()
-  eb.write(wav.data_b[:-n])
-  ct = encryptor.update(wav.data_b[-n:]) + encryptor.finalize()
+  eb.write(wav.data_b[:-n*16])
+  ct = encryptor.update(wav.data_b[-n*16:]) + encryptor.finalize()
   eb.write(ct)
   return eb.getvalue()
 
@@ -74,7 +74,7 @@ print('\nREAD:')
 wav = WAV(sys.argv[1])
 mode = sys.argv[2].lower()
 n = None if (len(sys.argv) <= 3) or (mode == 'full') else int(sys.argv[3])
-if (mode in ['first', 'last']): assert (n % 16 == 0) and (n * 16 <= wav.data_sz_b)
+if (mode in ['first', 'last']): assert (n * 16 <= wav.data_sz_b)
 
 print('\nENCRYPT:')
 key = os.urandom(32)
